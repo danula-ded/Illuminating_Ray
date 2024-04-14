@@ -5,7 +5,9 @@
 Полезные ссылки
 
 https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API
+
 https://www.bram.us/2024/02/18/custom-highlight-api-for-syntax-highlighting
+
 https://css-tricks.com/css-custom-highlight-api-early-look
 
 Формат ввода
