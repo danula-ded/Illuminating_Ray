@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yandex summer school 2024</title>
+  </head>
+  <style>
+    :root {
+      --bg-primary: #fbfbfb;
+      --bg-secondary: #fff;
+      --control-primary: #fdde55;
+      --color-primary: #000;
+      --depot-color-stroke: rgba(7, 28, 71, 0.12);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #111112;
+        --bg-secondary: #18181a;
+        --color-primary: #fff;
+        --depot-color-stroke: rgba(255, 255, 255, 0.12);
+      }
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    header {
+      box-shadow: 0 1px var(--depot-color-stroke);
+      margin-block-end: 12px;
+      padding-block-end: 8px;
+    }
+
+    .select-wrapper {
+      color: var(--color-primary);
+      margin-block-end: 12px;
+
+      & select {
+        min-width: 40px;
+        cursor: pointer;
+        font-size: 20px;
+      }
+    }
+
+    .search {
+      display: flex;
+      overflow: hidden;
+      flex: 1 1;
+      box-sizing: border-box;
+      height: 44px;
+      border: 2px solid #fc0;
+      border: 2px solid var(--control-primary);
+      border-radius: 12px;
+
+      & input {
+        flex: 1 1;
+        box-sizing: border-box;
+        padding-left: 14px;
+        font-family: inherit;
+        font-size: 16px;
+        text-overflow: clip;
+        color: var(--color-primary);
+        border: 0;
+        outline: 0;
+        background: initial;
+      }
+    }
+
+    .card-item {
+      padding: 12px 16px;
+      border-radius: 16px;
+      color: var(--color-primary);
+      background-color: var(--bg-secondary);
+      box-shadow: 0 4px 12px #0d234308;
+    }
+  </style>
+  <style>
+    ::highlight(search-results) {
+      background-color: orange;
+      text-decoration: underline;
+    }
+
+    .search-results {
+      background-color: orange;
+      text-decoration: underline;
+    }
+  </style>
+
+  <body>
+    <header>
+      <div class="select-wrapper">
+        <label for="tests-select">Выберите тест</label>
+        <select name="tests" id="tests-select"></select>
+      </div>
+      <form class="search" role="search" aria-label="Поиск">
+        <input
+          id="site-search"
+          type="text"
+          autocomplete="off"
+          aria-label="Запрос"
+        />
+      </form>
+    </header>
+
+    <div id="root" class="card-item"></div>
+  </body>
+  <script>
+    const rootElement = document.getElementById("root");
+    const testsSelect = document.getElementById("tests-select");
+
+    rootElement.addEventListener("onSolutionReady", (event) => {
+      const { detail } = event;
+
+      if (detail) {
+        testsSelect.innerHTML = detail
+          .map((t, index) => `<option value="${t.id}">${index + 1}</option>`)
+          .join("");
+
+        rootElement.innerHTML = detail[0].content;
+
+        testsSelect.addEventListener("change", (e) => {
+          const test = detail.find((t) => t.id === e.target.value);
+          rootElement.innerHTML = test.content;
+        });
+      }
+    });
+  </script>
+  <script>
+    const onSolutionReady = new CustomEvent("onSolutionReady", {
+      bubbles: true,
+      cancelable: true,
+      composed: false,
+      detail: [
+        {
+          id: "f38d0cca-167c-46dc-9504-69ebe13c1e47",
+          comment:
+            "One text node. Content contains in the middle of a single tag",
+          content: `<p>sit amet, Lorem ipsum. Sed non risus</p>`,
+          searchFor: "Lorem ipsum",
+        },
+        {
+          id: "20b81641-b065-492d-801a-e786d2a6894b",
+          comment: "One text node. Content contains in the end of a single tag",
+          content: `<p>Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, Lorem ipsum</p>`,
+          searchFor: "Lorem ipsum",
+        },
+        {
+          id: "c8b707f7-91e9-4778-acc6-4f06849bd323",
+          comment: "One text node and content contains in a single tag",
+          content: `
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.</p>
+              `,
+          searchFor: "Lorem ipsum",
+        },
+        {
+          id: "eb375bed-bf98-4150-b8ac-711a6c0fe33a",
+          comment:
+            "The two text nodes and content are contained in sibling tags",
+          content: `
+              <div><p>Lorem </p><p>ipsum</p></div>
+              `,
+          searchFor: "Lorem ipsum",
+        },
+      ],
+    });
+
+    document.getElementById("root").dispatchEvent(onSolutionReady);
+  </script>
+
+  <script>
+    if (!CSS.highlights) {
+      document.getElementById("root").innerHTML =
+        "CSS Custom Highlight API не поддерживается. <br />Пожалуйста, воспользуйтесь другим браузером. <a href='https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API#browser_compatibility'>Подробнее</a>";
+    }
+  </script>
+
+  <script src="/input.js"></script>
+</html>
