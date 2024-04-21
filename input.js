@@ -6,75 +6,57 @@ siteSearch.addEventListener("input", highlight);
 selectTest.addEventListener("change", highlight);
 
 function highlight() {
-  if (!CSS.highlights) {
+  // Проверяем поддержку CSS Custom Highlight API
+  if (!CSS.supports("content-visibility", "auto")) {
     root.textContent = "CSS Custom Highlight API не поддерживается.";
     return;
   }
 
-  CSS.highlights.clear();
-
-  const searchString = siteSearch.value.trim().toLowerCase();
+  // Получаем значение из поисковой строки
+  const searchString = siteSearch.value.toLowerCase();
   if (!searchString) {
     return;
   }
-  // Находим все текстовые узлы внутри корневого элемента и его дочерних элементов.
+
+  // Находим все текстовые узлы внутри корневого элемента и его дочерних элементов
   const allTextNodes = findAllTextNodes(root);
 
+  // Попробуем сначала найти фразу с пробелами
   let ranges = [];
+  if (searchString.includes(" ")) {
+    const searchStringWithoutSpaces = searchString.replace(/\s+/g, "");
+    ranges = findRanges(searchStringWithoutSpaces, allTextNodes);
+  }
 
-  // Ищем фразу как целое слово.
-  const phraseRanges = findPhraseRanges(searchString, allTextNodes);
-  ranges.push(...phraseRanges);
+  // Если не найдено, попробуем найти фразу без пробелов
+  if (ranges.length === 0) {
+    ranges = findRanges(searchString, allTextNodes);
+  }
 
-  // Если фраза не найдена, ищем отдельные слова из фразы.
-  const searchWords = searchString.split(/\s+/);
-  const wordRanges = findWordRanges(searchWords, allTextNodes);
-  ranges.push(...wordRanges);
+  // Если и это не помогло, ищем по словам
+  if (ranges.length === 0) {
+    const searchWords = searchString.split(/\s+/);
+    for (const word of searchWords) {
+      ranges.push(...findRanges(word, allTextNodes));
+    }
+  }
 
+  // Если ничего не найдено, выходим
+  if (ranges.length === 0) {
+    return;
+  }
+
+  // Очищаем существующие выделения
+  CSS.highlights.clear();
+
+  // Создаем объект Highlight с найденными диапазонами
   const searchResultsHighlight = new Highlight(...ranges);
 
+  // Выделяем найденные фразы или слова с помощью CSS Custom Highlight API
   CSS.highlights.set("search-results", searchResultsHighlight);
 }
 
-// Функция для нахождения фразы как целого слова.
-function findPhraseRanges(phrase, allTextNodes) {
-  const ranges = [];
-  for (const { el, text } of allTextNodes) {
-    let startPos = 0;
-    while (startPos < text.length) {
-      const index = text.indexOf(phrase, startPos);
-      if (index === -1) break;
-      const range = new Range();
-      range.setStart(el, index);
-      range.setEnd(el, index + phrase.length);
-      ranges.push(range);
-      startPos = index + phrase.length;
-    }
-  }
-  return ranges;
-}
-
-// Функция для нахождения диапазонов отдельных слов из фразы.
-function findWordRanges(words, allTextNodes) {
-  const ranges = [];
-  for (const word of words) {
-    for (const { el, text } of allTextNodes) {
-      let startPos = 0;
-      while (startPos < text.length) {
-        const index = text.indexOf(word, startPos);
-        if (index === -1) break;
-        const range = new Range();
-        range.setStart(el, index);
-        range.setEnd(el, index + word.length);
-        ranges.push(range);
-        startPos = index + word.length;
-      }
-    }
-  }
-  return ranges;
-}
-
-// Функция для нахождения всех текстовых узлов внутри элемента и его дочерних элементов.
+// Функция для нахождения всех текстовых узлов внутри элемента и его дочерних элементов
 function findAllTextNodes(element, nodes = []) {
   if (element.nodeType === Node.TEXT_NODE) {
     nodes.push({ el: element, text: element.textContent.toLowerCase() });
@@ -84,4 +66,22 @@ function findAllTextNodes(element, nodes = []) {
     });
   }
   return nodes;
+}
+
+// Функция для нахождения фразы или слова
+function findRanges(searchString, allTextNodes) {
+  const ranges = [];
+  for (const { el, text } of allTextNodes) {
+    let startPos = 0;
+    while (startPos < text.length) {
+      const index = text.indexOf(searchString, startPos);
+      if (index === -1) break;
+      const range = new Range();
+      range.setStart(el, index);
+      range.setEnd(el, index + searchString.length);
+      ranges.push(range);
+      startPos = index + searchString.length;
+    }
+  }
+  return ranges;
 }
